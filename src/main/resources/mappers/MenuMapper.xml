@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsu.spbmanagevue.dao.MenuDAO">
+    <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512"/>
+
+    <select id="getUserMenuByUserName" useCache="true" parameterType="java.lang.String"
+            resultType="com.itsu.spbmanagevue.entity.Menu">
+        select a.*
+        from tb_menu a
+                 JOIN tb_role_menu b on a.menu_id = b.mid
+                 join tb_role c on b.rid = c.rid
+                 join tb_user d on c.rid = d.rid
+        where d.username = #{value}
+          and a.type = 'MU'
+
+    </select>
+
+    <select id="getMenuButton" useCache="true" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select a.menu_id
+        from tb_menu a
+                 join tb_role_menu b on a.menu_id = b.mid
+                 join tb_role c on b.rid = c.rid
+        where c.rid = #{rid}
+          and a.pid = #{menuId}
+          and a.type = 'BT'
+    </select>
+
+    <select id="getMenuButtonInfo" useCache="true" resultType="java.util.HashMap">
+        SELECT a.menu_name                                             authenName,
+               a.url                                                   url,
+               case
+                   when a.type = 'MU' AND a.pid is null then 1
+                   when a.type = 'MU' and a.pid is not null then 2
+                   when a.type = 'BT' and a.pid is not null then 3 end `level`
+        FROM tb_menu a
+
+    </select>
+
+
+</mapper>

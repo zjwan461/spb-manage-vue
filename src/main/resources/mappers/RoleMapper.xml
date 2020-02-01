@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.itsu.spbmanagevue.dao.RoleDAO">
+    <cache eviction="LRU" size="512" readOnly="true" flushInterval="600000"/>
+
+    <resultMap id="roleMap" type="com.itsu.spbmanagevue.entity.Role">
+        <id property="rid" column="rid"/>
+        <result property="roleName" column="role_name"/>
+        <result property="stat" column="stat"/>
+        <result property="roleDesc" column="role_desc"/>
+        <collection property="menus" ofType="com.itsu.spbmanagevue.entity.Menu" javaType="java.util.List">
+            <id property="menuId" column="menu_id"/>
+            <result property="icon" column="icon"/>
+            <result property="menuName" column="menu_name"/>
+            <result property="pid" column="pid"/>
+            <result property="url" column="url"/>
+        </collection>
+    </resultMap>
+    <select id="getRoleListWithMenuButton" resultMap="roleMap">
+        select a.rid,
+               a.role_name,
+               a.role_desc,
+               a.stat,
+               c.menu_id,
+               c.menu_name,
+               c.pid,
+               c.url,
+               c.icon
+        from tb_role a
+                 join tb_role_menu b on a.rid = b.rid
+                 join tb_menu c on b.mid = c.menu_id
+
+    </select>
+
+    <delete id="deleteRoleMenuRef" flushCache="true">
+        delete
+        from tb_role_menu
+        where rid = #{rid}
+          and mid = #{mid}
+    </delete>
+
+    <select id="getRoleWithMenuButtonById" parameterType="java.lang.Integer" resultMap="roleMap">
+        select a.rid,
+               a.role_name,
+               a.role_desc,
+               a.stat,
+               c.menu_id,
+               c.menu_name,
+               c.pid,
+               c.url,
+               c.icon
+        from tb_role a
+                 join tb_role_menu b on a.rid = b.rid
+                 join tb_menu c on b.mid = c.menu_id
+        where a.rid = #{rid}
+    </select>
+</mapper>

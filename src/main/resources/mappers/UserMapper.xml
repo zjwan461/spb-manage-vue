@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.itsu.spbmanagevue.dao.UserDAO">
+    <cache eviction="LRU" size="512" readOnly="true" flushInterval="60000"/>
+    <resultMap id="baseMap" type="com.itsu.spbmanagevue.entity.User">
+        <id property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="mobile" column="mobile"/>
+        <result property="pwd" column="pwd"/>
+        <result property="stat" column="stat"/>
+        <result property="username" column="username"/>
+    </resultMap>
+
+    <resultMap id="userMap" type="com.itsu.spbmanagevue.entity.User" extends="baseMap">
+        <association property="role" javaType="com.itsu.spbmanagevue.entity.Role" column="rid">
+            <id property="rid" column="rid"/>
+            <result property="roleName" column="role_name"/>
+            <result property="stat" column="stat"/>
+            <result property="roleDesc" column="role_desc"/>
+            <collection property="menus" ofType="com.itsu.spbmanagevue.entity.Menu" javaType="java.util.List">
+                <id property="menuId" column="menu_id"/>
+                <result property="icon" column="icon"/>
+                <result property="menuName" column="menu_name"/>
+                <result property="pid" column="pid"/>
+                <result property="url" column="url"/>
+            </collection>
+        </association>
+    </resultMap>
+
+    <select id="getUserInfoById" resultMap="userMap" parameterType="java.lang.Integer">
+        SELECT
+            tb_user.id,
+            tb_user.pwd,
+            tb_user.username,
+            tb_user.rid,
+            tb_user.email,
+            tb_user.mobile,
+            tb_user.stat,
+            tb_role.rid,
+            tb_role.role_name,
+            tb_role.role_desc,
+            tb_role.stat,
+            tb_menu.menu_id,
+            tb_menu.icon,
+            tb_menu.menu_name,
+            tb_menu.pid,
+            tb_menu.url
+        FROM
+            tb_user
+            JOIN tb_role ON tb_user.rid = tb_role.rid
+            JOIN tb_role_menu ON tb_role.rid = tb_role_menu.rid
+            JOIN tb_menu ON tb_role_menu.mid = tb_menu.menu_id
+        WHERE
+            tb_user.id = #{value}
+    </select>
+
+    <select id="selectUserByPage" resultType="java.util.HashMap">
+        select a.* , b.role_name roleName from tb_user a join tb_role b on a.rid = b.rid
+    </select>
+
+    <insert id="insertUser" parameterType="com.itsu.spbmanagevue.entity.User" flushCache="true">
+        insert into tb_user (username, pwd, email,mobile, stat, rid)
+        values(#{username} , #{pwd},#{email},#{mobile},#{stat}, #{role.rid})
+    </insert>
+
+    <select id="selectUserLikeByPage" resultType="java.util.HashMap">
+        select a.*, b.role_name roleName from tb_user a join tb_role b on a.rid = b.rid where a.username like #{searchValue}
+    </select>
+
+    <update id="updateUserRole" parameterType="java.lang.String" flushCache="true">
+        update tb_user SET rid = (SELECT rid from tb_role where role_name = #{newRoleName}) where username = #{username}
+    </update>
+</mapper>
